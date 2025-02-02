@@ -1,0 +1,27 @@
+spring:
+  config:
+    import: "optional:configserver:http://localhost:8087"
+  cloud:
+    config:
+      discovery:
+        enabled: false
+  datasource:
+    url: jdbc:h2:mem:testdb
+    username: sa
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+  liquibase:
+    enabled: false
+  mvc:
+    format:
+      date: iso
+      date-time: iso
+      time: iso
+  data:
+    web:
+      pageable:
+        default-page-size: 20000
+        max-page-size: 20000
+        one-indexed-parameters: true
