@@ -5,7 +5,6 @@ import com.aviatickets.notifier.controller.request.EmailRequest;
 import com.aviatickets.notifier.model.Email;
 import com.aviatickets.notifier.model.EmailStatus;
 import com.aviatickets.notifier.repository.NotifierEmailRepository;
-import jakarta.ws.rs.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,42 +18,37 @@ public class EmailService {
 
     private final NotifierEmailRepository notifierEmailRepository;
 
-    public void saveEmailToDatabase(EmailRequest request) {
-        if (request.isValid()) {
-            Email email = Email.builder()
-                    .externalId(UUID.randomUUID())
-                    .email(request.getEmail())
-                    .subject(request.getSubject())
-                    .text(request.getText())
-                    .requiredSendingDatetime(request.getSendAt())
-                    .sendingDatetime(null)
-                    .status(request.getSendAt() == null || request.getSendAt().isBefore(LocalDateTime.now()) ? EmailStatus.SENDED : EmailStatus.DELAYED)
-                    .build();
-            notifierEmailRepository.save(email);
-        } else {
-            throw new BadRequestException("Invalid email request");
-        }
+    public void saveEmail(EmailRequest request) {
+        Email email = Email.builder()
+                .externalId(UUID.randomUUID())
+                .email(request.getEmail())
+                .subject(request.getSubject())
+                .text(request.getText())
+                .requiredSendingDatetime(request.getSendAt())
+                .sendingDatetime(null)
+                .status(determineStatus(request.getSendAt()))
+                .build();
+
+        notifierEmailRepository.save(email);
     }
 
-
-    public void saveBatchEmailsToDatabase(EmailBatchRequest request) {
-        if (request.isValid()) {
-            List<Email> emails = request.getEmails().stream().map(email -> {
-                return Email.builder()
+    public void saveBatchEmails(EmailBatchRequest request) {
+        List<Email> emails = request.getEmails().stream()
+                .map(email -> Email.builder()
                         .externalId(UUID.randomUUID())
                         .email(email)
                         .subject(request.getSubject())
                         .text(request.getText())
                         .requiredSendingDatetime(request.getSendAt())
                         .sendingDatetime(null)
-                        .status(request.getSendAt() == null || request.getSendAt().isBefore(LocalDateTime.now()) ? EmailStatus.SENDED : EmailStatus.DELAYED)
-                        .build();
-            }).toList();
+                        .status(determineStatus(request.getSendAt()))
+                        .build())
+                .toList();
 
-            notifierEmailRepository.saveAll(emails);
-        } else {
-            throw new BadRequestException("Invalid batch email request");
-        }
+        notifierEmailRepository.saveAll(emails);
+    }
+
+    private EmailStatus determineStatus(LocalDateTime sendAt) {
+        return (sendAt == null || sendAt.isBefore(LocalDateTime.now())) ? EmailStatus.SENDED : EmailStatus.DELAYED;
     }
 }
-
