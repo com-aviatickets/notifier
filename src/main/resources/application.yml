@@ -7,8 +7,8 @@ spring:
     password: postgres
   liquibase:
     change-log: classpath:/db/changelog/changelog-master.yaml
-    database-change-log-table: profile_database_changelog
-    database-change-log-lock-table: profile_database_changelog_lock
+    database-change-log-table: notifier_database_changelog
+    database-change-log-lock-table: notifier_database_changelog_lock
   config:
     import: "optional:configserver:http://config:8087"
   mvc:
