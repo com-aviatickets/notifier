@@ -13,4 +13,5 @@ import java.util.UUID;
 @Repository
 public interface NotifierEmailRepository extends JpaRepository<Email, Long> {
 
+    List<Email> findAllByStatusAndRequiredSendingDatetimeBefore(EmailStatus emailStatus, LocalDateTime now);
 }
