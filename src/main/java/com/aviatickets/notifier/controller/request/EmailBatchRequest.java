@@ -32,4 +32,6 @@ public class EmailBatchRequest {
                 ", sendAt=" + sendAt +
                 '}';
     }
+
+
 }

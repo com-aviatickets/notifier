@@ -4,6 +4,7 @@ import com.aviatickets.notifier.controller.request.EmailRequest;
 import jakarta.validation.ConstraintValidatorContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.time.LocalDateTime;
 
@@ -20,75 +21,71 @@ class EmailRequestValidatorTest {
         validator = new EmailRequestValidator();
         context = mock(ConstraintValidatorContext.class);
 
-
         ConstraintValidatorContext.ConstraintViolationBuilder builder = mock(ConstraintValidatorContext.ConstraintViolationBuilder.class);
+        ConstraintValidatorContext.ConstraintViolationBuilder.NodeBuilderCustomizableContext nodeBuilder = mock(ConstraintValidatorContext.ConstraintViolationBuilder.NodeBuilderCustomizableContext.class);
+
         when(context.buildConstraintViolationWithTemplate(anyString())).thenReturn(builder);
-        when(builder.addPropertyNode(anyString())).thenReturn(mock(ConstraintValidatorContext.ConstraintViolationBuilder.NodeBuilderCustomizableContext.class));
+        when(builder.addPropertyNode(anyString())).thenReturn(nodeBuilder);
+        when(nodeBuilder.addConstraintViolation()).thenReturn(context);
     }
 
     @Test
     void testValidRequest() {
         EmailRequest request = new EmailRequest();
-        request.setEmail("test@example.com");
-        request.setSubject("Test Subject");
-        request.setText("Test body of the email");
-        request.setSendAt(LocalDateTime.now().plusHours(1));
+        request.setEmail("user@example.com");
+        request.setSubject("Valid subject");
+        request.setText("This is the body of the email.");
+        request.setSendAt(LocalDateTime.now().plusMinutes(10));
 
-        boolean result = validator.isValid(request, context);
-        assertTrue(result);
+        assertTrue(validator.isValid(request, context));
     }
 
     @Test
     void testNullRequest() {
-        boolean result = validator.isValid(null, context);
-        assertFalse(result);
+        assertFalse(validator.isValid(null, context));
     }
 
     @Test
     void testInvalidEmail() {
         EmailRequest request = new EmailRequest();
         request.setEmail("invalid-email");
-        request.setSubject("Subject");
-        request.setText("Text");
-        request.setSendAt(LocalDateTime.now());
+        request.setSubject("Valid subject");
+        request.setText("This is the body.");
+        request.setSendAt(LocalDateTime.now().plusMinutes(10));
 
-        boolean result = validator.isValid(request, context);
-        assertFalse(result);
+        assertFalse(validator.isValid(request, context));
     }
 
     @Test
     void testEmptySubject() {
         EmailRequest request = new EmailRequest();
-        request.setEmail("test@example.com");
+        request.setEmail("user@example.com");
         request.setSubject("");
-        request.setText("Text");
-        request.setSendAt(LocalDateTime.now());
+        request.setText("Text body.");
+        request.setSendAt(LocalDateTime.now().plusMinutes(10));
 
-        boolean result = validator.isValid(request, context);
-        assertFalse(result);
+        assertFalse(validator.isValid(request, context));
     }
 
     @Test
     void testEmptyText() {
         EmailRequest request = new EmailRequest();
-        request.setEmail("test@example.com");
-        request.setSubject("Subject");
-        request.setText("");
-        request.setSendAt(LocalDateTime.now());
+        request.setEmail("user@example.com");
+        request.setSubject("Some subject");
+        request.setText("   ");
+        request.setSendAt(LocalDateTime.now().plusMinutes(10));
 
-        boolean result = validator.isValid(request, context);
-        assertFalse(result);
+        assertFalse(validator.isValid(request, context));
     }
 
     @Test
-    void testTooOldSendAt() {
+    void testPastSendAt() {
         EmailRequest request = new EmailRequest();
-        request.setEmail("test@example.com");
-        request.setSubject("Subject");
-        request.setText("Text");
-        request.setSendAt(LocalDateTime.now().minusYears(1)); // слишком старая дата
+        request.setEmail("user@example.com");
+        request.setSubject("Some subject");
+        request.setText("Some text");
+        request.setSendAt(LocalDateTime.now().minusHours(1));
 
-        boolean result = validator.isValid(request, context);
-        assertFalse(result);
+        assertFalse(validator.isValid(request, context));
     }
 }

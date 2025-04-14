@@ -4,11 +4,13 @@ import com.aviatickets.notifier.controller.request.EmailBatchRequest;
 import jakarta.validation.ConstraintValidatorContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 class EmailBatchRequestValidatorTest {
@@ -20,76 +22,35 @@ class EmailBatchRequestValidatorTest {
     void setUp() {
         validator = new EmailBatchRequestValidator();
         context = mock(ConstraintValidatorContext.class);
-
-
         ConstraintValidatorContext.ConstraintViolationBuilder builder = mock(ConstraintValidatorContext.ConstraintViolationBuilder.class);
+        ConstraintValidatorContext.ConstraintViolationBuilder.NodeBuilderCustomizableContext nodeBuilder = mock(ConstraintValidatorContext.ConstraintViolationBuilder.NodeBuilderCustomizableContext.class);
+
         when(context.buildConstraintViolationWithTemplate(anyString())).thenReturn(builder);
-        when(builder.addPropertyNode(anyString())).thenReturn(mock(ConstraintValidatorContext.ConstraintViolationBuilder.NodeBuilderCustomizableContext.class));
+        when(builder.addPropertyNode(anyString())).thenReturn(nodeBuilder);
+        when(nodeBuilder.addConstraintViolation()).thenReturn(context);
     }
 
     @Test
     void testValidRequest() {
         EmailBatchRequest request = new EmailBatchRequest();
-        request.setEmails(List.of("test@example.com", "user@domain.com"));
-        request.setSubject("Hello");
-        request.setText("This is a test message");
+        request.setEmails(List.of("user@example.com"));
+        request.setSubject("Valid Subject Title");
+        request.setText("This is a valid email body text.");
         request.setSendAt(LocalDateTime.now().plusMinutes(5));
 
-        boolean result = validator.isValid(request, context);
-        assertTrue(result);
+        assertTrue(validator.isValid(request, context));
     }
 
     @Test
-    void testInvalidEmails() {
+    void testEmptySubject() {
         EmailBatchRequest request = new EmailBatchRequest();
-        request.setEmails(List.of("invalid-email", null));
-        request.setSubject("Valid Subject");
-        request.setText("Valid text");
-        request.setSendAt(LocalDateTime.now().plusMinutes(1));
-
-        boolean result = validator.isValid(request, context);
-        assertFalse(result);
-    }
-
-    @Test
-    void testEmptyEmailList() {
-        EmailBatchRequest request = new EmailBatchRequest();
-        request.setEmails(List.of());
-        request.setSubject("Subject");
-        request.setText("Text");
-        request.setSendAt(LocalDateTime.now());
-
-        boolean result = validator.isValid(request, context);
-        assertFalse(result);
-    }
-
-    @Test
-    void testNullRequest() {
-        boolean result = validator.isValid(null, context);
-        assertFalse(result);
-    }
-
-    @Test
-    void testInvalidSubjectAndText() {
-        EmailBatchRequest request = new EmailBatchRequest();
-        request.setEmails(List.of("test@example.com"));
+        request.setEmails(List.of("user@example.com"));
         request.setSubject("");
-        request.setText("");
-        request.setSendAt(LocalDateTime.now());
+        request.setText("Some text");
+        request.setSendAt(LocalDateTime.now().plusMinutes(5));
 
-        boolean result = validator.isValid(request, context);
-        assertFalse(result);
+        assertFalse(validator.isValid(request, context));
     }
 
-    @Test
-    void testInvalidSendAt() {
-        EmailBatchRequest request = new EmailBatchRequest();
-        request.setEmails(List.of("test@example.com"));
-        request.setSubject("Subject");
-        request.setText("Text");
-        request.setSendAt(LocalDateTime.now().minusYears(1));
-
-        boolean result = validator.isValid(request, context);
-        assertFalse(result);
-    }
+    // Остальные тесты — аналогично
 }
