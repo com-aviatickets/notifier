@@ -5,14 +5,12 @@ import java.util.List;
 import java.util.UUID;
 
 import com.aviatickets.notifier.validation.ValidEmailBatchRequest;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.*;
 
 @Setter
 @Getter
+@Builder
+@NoArgsConstructor
 @AllArgsConstructor
 @ValidEmailBatchRequest
 public class EmailBatchRequest {
@@ -22,6 +20,8 @@ public class EmailBatchRequest {
     private String subject;
     private String text;
     private LocalDateTime sendAt;
+
+
 
     @Override
     public String toString() {
